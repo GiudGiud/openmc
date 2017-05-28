@@ -3414,17 +3414,10 @@ contains
           t % find_filter(FILTER_DISTRIBCELL) = j
         type is (CellFilter)
           t % find_filter(FILTER_CELL) = j
-          
         type is (CellFromFilter)
           t % find_filter(FILTER_CELL_TO_CELL) = j
-
-          t % estimator = ESTIMATOR_ANALOG
-          
         type is (CellToFilter)
           t % find_filter(FILTER_CELL_TO_CELL) = j
-
-          t % estimator = ESTIMATOR_ANALOG
-
         type is (CellbornFilter)
           t % find_filter(FILTER_CELLBORN) = j
         type is (MaterialFilter)
@@ -3929,11 +3922,9 @@ contains
 
           case ('events')
             t % score_bins(j) = SCORE_EVENTS
-
           case ('partial_current')
             t % type = TALLY_CELL_TO_CELL
             t % score_bins(j) = SCORE_CELL_TO_CELL_TYPE
-            
           case ('elastic', '(n,elastic)')
             t % score_bins(j) = ELASTIC
           case ('(n,2nd)')

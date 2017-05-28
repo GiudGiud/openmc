@@ -744,7 +744,7 @@ contains
   end function text_label_cell
  
 !===============================================================================
-! Cell_From_Filter methods
+! CellFromFilter methods
 !===============================================================================
   subroutine get_next_bin_cell_from(this, p, estimator, current_bin, &
       next_bin, weight)
@@ -757,28 +757,19 @@ contains
 
     integer :: i, start
 
-    ! Find the coordinate level of the last bin we found.
-!     if (current_bin == NO_BIN_FOUND) then
-!       start = 1
-!     else
-!       do i = 1, p % last_n_coord                                !shouldnt be done this way, modify later!!
-!         ! print *, p % last_cell, this % cells(current_bin)
-!         if (p % last_cell == this % cells(current_bin)) then
-!           start = i + 1
-!           exit
-!         end if
-!       end do
-!     end if
+    ! Not looking for coordinate level of last cell the particle was in
+    ! Indeed, the number of cell_from should be kept to a minimum to avoid
+    ! having useless bins, with cell_to and cell_from not contiguous
+    ! So no cell_from at different universe levels for now
 
-    ! Starting one coordinate level deeper, find the next bin.
+    ! Particle can only have one cell_from
+    ! If current_bin is already a bin, then no need to look for another bin
     next_bin = NO_BIN_FOUND
     weight = ERROR_REAL
-    weight = ONE
     if (current_bin == NO_BIN_FOUND) then
-!       print *, "Looking in map for cell at", p % last_cell," :",this % map % get_key(p % last_cell)
       if (this % map % has_key(p % last_cell)) then
-!         print *, "Found in map for cell at", p % last_cell," :",this % map % get_key(p % last_cell)
         next_bin = this % map % get_key(p % last_cell)
+        weight = ONE
       end if
     else
       next_bin = NO_BIN_FOUND
@@ -830,11 +821,11 @@ contains
     integer,               intent(in) :: bin
     character(MAX_LINE_LEN)           :: label
 
-    label = "Cell to from" // to_str(cells(this % cells(bin)) % id)
+    label = "Cell from" // to_str(cells(this % cells(bin)) % id)
   end function text_label_cell_from
   
 !===============================================================================
-! Cell_To_Filter methods
+! CellToFilter methods
 !===============================================================================
   subroutine get_next_bin_cell_to(this, p, estimator, current_bin, &
       next_bin, weight)
@@ -896,7 +887,6 @@ contains
     ! Convert ids to indices.
     do i = 1, this % n_bins
       id = this % cells(i)
-      print *, this % n_bins, this % cells(i), cell_dict % has_key(id)
       
       if (cell_dict % has_key(id)) then
         this % cells(i) = cell_dict % get_key(id)
@@ -917,7 +907,7 @@ contains
     integer,             intent(in) :: bin
     character(MAX_LINE_LEN)         :: label
 
-    label = "Cell to to" // to_str(cells(this % cells(bin)) % id)
+    label = "Cell to" // to_str(cells(this % cells(bin)) % id)
   end function text_label_cell_to
   
   

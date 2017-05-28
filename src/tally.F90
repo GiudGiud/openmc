@@ -117,12 +117,8 @@ contains
       !#########################################################################
       ! Determine appropirate scoring value.
       
-!       print *, "Score bin", score_bin
-
       select case(score_bin)
       
-      ! use default case for cell_to_from tallies, with t % estimator == ESTIMATOR_ANALOG
-
       case (SCORE_FLUX, SCORE_FLUX_YN)
         if (t % estimator == ESTIMATOR_ANALOG) then
           ! All events score to a flux bin. We actually use a collision
@@ -1183,13 +1179,9 @@ contains
       case(SCORE_CELL_TO_CELL_TYPE)
           ! Not using default because score_bin and event_MT thing
           ! score_bin is -25, and event_MT seems to match the cell id
-          ! print*, p % event_MT, score_bin
-!           print *, "Scoring", p % last_wgt, flux
           score = p % last_wgt * flux
         
       case default
-        !print *, "Found right score type"
-        !print * , t % estimator
         if (t % estimator == ESTIMATOR_ANALOG) then
           ! Any other score is assumed to be a MT number. Thus, we just need
           ! to check if it matches the MT number of the event
@@ -2095,8 +2087,6 @@ contains
       case(SCORE_CELL_TO_CELL_TYPE)
           ! Not using default because score_bin and event_MT thing
           ! score_bin is -25, and event_MT seems to match the cell id
-          ! print*, p % event_MT, score_bin
-!           print *, "Scoring", p % last_wgt, flux
           score = p % last_wgt * flux
 
       end select
@@ -2131,8 +2121,6 @@ contains
     integer :: n      ! Moment loop index
     real(8) :: uvw(3)
     
-!     print *, "Expand and score, score bin", score_bin, "score", score, "filter_index", filter_index
-
     select case(score_bin)
     case (SCORE_SCATTER_N, SCORE_NU_SCATTER_N)
       ! Find the scattering order for a singly requested moment, and
@@ -2215,7 +2203,6 @@ contains
 
 
     case default
-!       print *, "Adding to total in expand-and-score", score
 !$omp atomic
       t % results(RESULT_VALUE, score_index, filter_index) = &
            t % results(RESULT_VALUE, score_index, filter_index) + score
@@ -3196,10 +3183,12 @@ contains
     
     ! A loop over all tallies is necessary because we need to simultaneously
     ! determine different filter bins for the same tally in order to score to it
+    ! However, we can restrict the list to cell_to_cell tallies since we know we
+    ! are crossing a surface
 
-    TALLY_LOOP: do i = 1, active_collision_tallies % size()
+    TALLY_LOOP: do i = 1, active_cell_to_cell_tallies % size()
       ! Get index of tally and pointer to tally
-      i_tally = active_collision_tallies % data(i)
+      i_tally = active_cell_to_cell_tallies % data(i)
       t => tallies(i_tally)
 
       ! Find all valid bins in each filter if they have not already been found
@@ -3329,8 +3318,6 @@ contains
     type(TallyObject), pointer :: t
     type(RegularMesh), pointer :: m
     
-    print *, "Number of current tallies",active_current_tallies % size() 
-
     TALLY_LOOP: do i = 1, active_current_tallies % size()
       ! Copy starting and ending location of particle
       xyz0 = p % last_xyz_current
@@ -3341,9 +3328,7 @@ contains
       t => tallies(i_tally)
 
       ! Check for energy filter
-      print *, "trying energy filter", t % id
       energy_filter = (t % find_filter(FILTER_ENERGYIN) > 0)
-      print *, "passed check for energy filter"
 
       ! Get index for mesh, surface, and energy filters
       i_filter_mesh = t % filter(t % find_filter(FILTER_MESH))
@@ -3351,8 +3336,6 @@ contains
       if (energy_filter) then
         i_filter_energy = t % filter(t % find_filter(FILTER_ENERGYIN))
       end if
-      
-      print*, "found indexes"
 
       ! Reset the matching bins arrays
       call filter_matches(i_filter_mesh) % bins % resize(1)
@@ -3360,17 +3343,12 @@ contains
       if (energy_filter) then
         call filter_matches(i_filter_energy) % bins % resize(1)
       end if
-      
-      print*, "reset bin arrays"
-
 
       ! Get pointer to mesh
       select type(filt => filters(i_filter_mesh) % obj)
       type is (MeshFilter)
         m => meshes(filt % mesh)
       end select
-
-      print *, "Reached here"
 
       n_dim = m % n_dimension
 
@@ -3535,8 +3513,6 @@ contains
                 t % results(RESULT_VALUE, 1, filter_index) = &
                      t % results(RESULT_VALUE, 1, filter_index) + p % wgt
               end if
-              
-              print* , "reached there"
 
               ! Inward current on d1 max surface
               cross_surface = .false.
@@ -4597,7 +4573,6 @@ contains
         call active_current_tallies % push_back(i_user_tallies + i)
       elseif (user_tallies(i) % type == TALLY_CELL_TO_CELL) then
         call active_cell_to_cell_tallies % push_back(i_user_tallies + i)
-        call active_current_tallies % push_back(i_user_tallies + i)
       end if
       
     end do
@@ -4607,6 +4582,7 @@ contains
     call active_tracklength_tallies % shrink_to_fit()
     call active_collision_tallies % shrink_to_fit()
     call active_current_tallies % shrink_to_fit()
+    call active_cell_to_cell_tallies % shrink_to_fit()
 
   end subroutine setup_active_usertallies
 
@@ -4630,6 +4606,9 @@ contains
     else if (active_current_tallies % size() > 0) then
       call fatal_error("Active current tallies should not exist before CMFD &
            &tallies!")
+    else if (active_cell_to_cell_tallies % size() > 0) then
+      call fatal_error("Active cell to cell tallies should not exist before &
+           &CMFD tallies!")
     end if
 
     do i = 1, n_cmfd_tallies
@@ -4640,6 +4619,7 @@ contains
       if (cmfd_tallies(i) % type == TALLY_VOLUME) then
         if (cmfd_tallies(i) % estimator == ESTIMATOR_ANALOG) then
           call active_analog_tallies % push_back(i_cmfd_tallies + i)
+          call active_cell_to_cell_tallies % push_back(i_cmfd_tallies + 1)
         elseif (cmfd_tallies(i) % estimator == ESTIMATOR_TRACKLENGTH) then
           call active_tracklength_tallies % push_back(i_cmfd_tallies + i)
         end if
@@ -4653,7 +4633,8 @@ contains
     call active_tracklength_tallies % shrink_to_fit()
     call active_collision_tallies % shrink_to_fit()
     call active_current_tallies % shrink_to_fit()
-
+    call active_cell_to_cell_tallies % shrink_to_fit()
+    
   end subroutine setup_active_cmfdtallies
 
 end module tally
