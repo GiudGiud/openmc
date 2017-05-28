@@ -3328,6 +3328,8 @@ contains
     logical :: energy_filter        ! energy filter present
     type(TallyObject), pointer :: t
     type(RegularMesh), pointer :: m
+    
+    print *, "Number of current tallies",active_current_tallies % size() 
 
     TALLY_LOOP: do i = 1, active_current_tallies % size()
       ! Copy starting and ending location of particle
@@ -3339,7 +3341,9 @@ contains
       t => tallies(i_tally)
 
       ! Check for energy filter
+      print *, "trying energy filter", t % id
       energy_filter = (t % find_filter(FILTER_ENERGYIN) > 0)
+      print *, "passed check for energy filter"
 
       ! Get index for mesh, surface, and energy filters
       i_filter_mesh = t % filter(t % find_filter(FILTER_MESH))
@@ -3347,6 +3351,8 @@ contains
       if (energy_filter) then
         i_filter_energy = t % filter(t % find_filter(FILTER_ENERGYIN))
       end if
+      
+      print*, "found indexes"
 
       ! Reset the matching bins arrays
       call filter_matches(i_filter_mesh) % bins % resize(1)
@@ -3354,12 +3360,17 @@ contains
       if (energy_filter) then
         call filter_matches(i_filter_energy) % bins % resize(1)
       end if
+      
+      print*, "reset bin arrays"
+
 
       ! Get pointer to mesh
       select type(filt => filters(i_filter_mesh) % obj)
       type is (MeshFilter)
         m => meshes(filt % mesh)
       end select
+
+      print *, "Reached here"
 
       n_dim = m % n_dimension
 
@@ -3524,6 +3535,8 @@ contains
                 t % results(RESULT_VALUE, 1, filter_index) = &
                      t % results(RESULT_VALUE, 1, filter_index) + p % wgt
               end if
+              
+              print* , "reached there"
 
               ! Inward current on d1 max surface
               cross_surface = .false.
