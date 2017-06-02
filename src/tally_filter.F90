@@ -757,11 +757,6 @@ contains
 
     integer :: i, start
 
-    ! Not looking for coordinate level of last cell the particle was in
-    ! Indeed, the number of cell_from should be kept to a minimum to avoid
-    ! having useless bins, with cell_to and cell_from not contiguous
-    ! So no cell_from at different universe levels for now
-
     ! Particle can only have one cell_from
     ! If current_bin is already a bin, then no need to look for another bin
     next_bin = NO_BIN_FOUND
@@ -821,7 +816,7 @@ contains
     integer,               intent(in) :: bin
     character(MAX_LINE_LEN)           :: label
 
-    label = "Cell from" // to_str(cells(this % cells(bin)) % id)
+    label = "Cell from " // to_str(cells(this % cells(bin)) % id)
   end function text_label_cell_from
   
 !===============================================================================
@@ -892,7 +887,7 @@ contains
         this % cells(i) = cell_dict % get_key(id)
       else
         call fatal_error("Could not find cell " // trim(to_str(id)) &
-             &// " specified on tally filter. (Cell To)")
+             &// " specified on tally filter.")
       end if
     end do
 
@@ -907,9 +902,8 @@ contains
     integer,             intent(in) :: bin
     character(MAX_LINE_LEN)         :: label
 
-    label = "Cell to" // to_str(cells(this % cells(bin)) % id)
+    label = "Cell to " // to_str(cells(this % cells(bin)) % id)
   end function text_label_cell_to
-  
   
 !===============================================================================
 ! DistribcellFilter methods

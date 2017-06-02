@@ -1176,9 +1176,7 @@ contains
           end if
         end if
 
-      case(SCORE_CELL_TO_CELL_TYPE)
-          ! Not using default because score_bin and event_MT thing
-          ! score_bin is -25, and event_MT seems to match the cell id
+      case(SCORE_CELL_TO_CELL)
           score = p % last_wgt * flux
         
       case default
@@ -2084,9 +2082,7 @@ contains
         ! Simply count number of scoring events
         score = ONE
         
-      case(SCORE_CELL_TO_CELL_TYPE)
-          ! Not using default because score_bin and event_MT thing
-          ! score_bin is -25, and event_MT seems to match the cell id
+      case(SCORE_CELL_TO_CELL)
           score = p % last_wgt * flux
 
       end select
@@ -3147,13 +3143,12 @@ contains
   end subroutine score_collision_tally
 
 !===============================================================================
-! SCORE_CELL_TO_CELL tallies partial currents from cell_to to cell_from
+! score_partial_current tallies partial currents from cell_to to cell_from
 !===============================================================================
 
-    subroutine  score_cell_to_cell(p, last_cell)
+    subroutine  score_partial_current(p)
 
     type(Particle), intent(in)    :: p
-    integer,        intent(in)    :: last_cell
     
     ! if particle has leaked
     ! DF could preserve leakage aiight
@@ -3278,7 +3273,7 @@ contains
     ! Reset tally map positioning
     position = 0
   
-  end subroutine score_cell_to_cell
+  end subroutine score_partial_current
   
 !===============================================================================
 ! SCORE_SURFACE_CURRENT tallies surface crossings in a mesh tally by manually

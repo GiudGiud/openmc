@@ -12,7 +12,7 @@ module geometry
   use stl_vector,             only: VectorInt
   use string,                 only: to_str
   use tally,                  only: score_surface_current, &
-                                    &score_cell_to_cell
+                                    &score_partial_current
 
   implicit none
 
@@ -614,9 +614,8 @@ contains
 
       call find_cell(p, found, surf%neighbor_pos)
       
-      ! /CHANGE/ Score cell_to_cell 
-!       print *, "Positive side, calling score_cell_to_cell"
-      call score_cell_to_cell(p, last_cell)
+      ! Score cell to cell partial currents
+      call score_partial_current(p)
       
       if (found) return
 
@@ -626,9 +625,8 @@ contains
 
       call find_cell(p, found, surf%neighbor_neg)
       
-      ! /CHANGE/ Score cell_to_cell 
-!       print *, "Negative side, calling score_cell_to_cell"
-      call score_cell_to_cell(p, last_cell)
+      ! Score cell to cell partial currents
+      call score_partial_current(p)
       
       if (found) return
 
@@ -663,9 +661,8 @@ contains
       end if
     end if
     
-    ! /CHANGE/ Score cell_to_cell 
-!     print *, "Searched all cells then calling score_cell_to_cell"
-    call score_cell_to_cell(p, last_cell)
+    ! Score cell to cell partial currents
+    call score_partial_current(p)
 
   end subroutine cross_surface
 

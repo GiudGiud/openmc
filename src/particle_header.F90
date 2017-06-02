@@ -15,8 +15,6 @@ module particle_header
 !===============================================================================
 
   type LocalCoord
-  
-    integer :: last_cell = NONE
     
     ! Indices in various arrays for this level
     integer :: cell      = NONE
@@ -63,9 +61,6 @@ module particle_header
     
     ! Previous cell before crossing surface
     integer    :: last_cell
-    ! Particle coordinates
-    integer          :: last_n_coord          ! number of current coordinates
-!     type(LocalCoord) :: last_coord(MAX_COORD) ! coordinates for all levels
     
     ! Pre-collision physical data
     real(8)    :: last_xyz_current(3) ! coordinates of the last collision or
@@ -136,6 +131,7 @@ contains
 
     ! clear attributes
     this % surface           = NONE
+    this % last_cell         = NONE
     this % cell_born         = NONE
     this % material          = NONE
     this % last_material     = NONE
@@ -180,8 +176,6 @@ contains
 
   elemental subroutine reset_coord(this)
     class(LocalCoord), intent(inout) :: this
-
-    this % last_cell = NONE
     
     this % cell = NONE
     this % universe = NONE

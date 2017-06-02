@@ -331,7 +331,7 @@ module constants
        SCORE_FISS_Q_PROMPT      = -22, & ! prompt fission Q-value
        SCORE_FISS_Q_RECOV       = -23, & ! recoverable fission Q-value
        SCORE_DECAY_RATE         = -24, & ! delayed neutron precursor decay rate
-       SCORE_CELL_TO_CELL_TYPE  = -25    ! cell to cell partial current
+       SCORE_CELL_TO_CELL       = -25    ! cell to cell partial current
 
   ! Maximum scattering order supported
   integer, parameter :: MAX_ANG_ORDER = 10

@@ -3924,7 +3924,7 @@ contains
             t % score_bins(j) = SCORE_EVENTS
           case ('partial_current')
             t % type = TALLY_CELL_TO_CELL
-            t % score_bins(j) = SCORE_CELL_TO_CELL_TYPE
+            t % score_bins(j) = SCORE_CELL_TO_CELL
           case ('elastic', '(n,elastic)')
             t % score_bins(j) = ELASTIC
           case ('(n,2nd)')
