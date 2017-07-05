@@ -2193,6 +2193,22 @@ contains
       i = i + t % moment_order(i)
 
 
+    case (SCORE_CURRENT_POLAR_PN)
+      score_index = score_index - 1
+      ! Find the scattering order for a collection of requested moments
+      ! and store the moment contribution of each
+      do n = 0, t % moment_order(i)
+        ! determine scoring bin index
+        score_index = score_index + 1
+
+        ! get the score and tally it
+!$omp atomic
+        t % results(RESULT_VALUE, score_index, filter_index) = &
+             t % results(RESULT_VALUE, score_index, filter_index) &
+             + score * calc_pn(n, (acos(p % last_uvw(3)) / PI) * 2 - 1)  !p % last_uvw(3)
+      end do
+      i = i + t % moment_order(i)
+
     case default
 !$omp atomic
       t % results(RESULT_VALUE, score_index, filter_index) = &
@@ -3154,6 +3170,7 @@ contains
     integer :: score_bin            ! scoring bin, e.g. SCORE_FLUX
     integer :: score_index          ! scoring bin index
     integer :: j                    ! loop index for scoring bins
+    integer :: k                    ! second loop index for scoring bins
     integer :: filter_index         ! single index for single bin
     integer :: matching_bin         ! next valid filter bin
     real(8) :: flux                 ! collision estimate of flux
@@ -3161,13 +3178,8 @@ contains
     real(8) :: score                ! analog tally score
     logical :: finished             ! found all valid bin combinations
 
-    ! Determine collision estimate of flux
-    if (survival_biasing) then
-      ! We need to account for the fact that some weight was already absorbed
-      flux = (p % last_wgt + p % absorb_wgt)
-    else
-      flux = p % last_wgt
-    end if
+    ! No special case for survival biasing
+    flux = p % wgt
 
     TALLY_LOOP: do i = 1, active_surface_tallies % size()
       ! Get index of tally and pointer to tally
@@ -3221,18 +3233,20 @@ contains
         ! Determine score
         score = flux * filter_weight
 
-        ! Currently only one score type
+        ! Find score bin index
+        k = 0
         SCORE_LOOP: do q = 1, t % n_user_score_bins
+          k = k + 1
 
           ! determine what type of score bin
           score_bin = t % score_bins(q)
 
-          ! determine scoring bin index, no offset from nuclide bins
-          score_index = q
+          ! determine scoring bin index
+          score_index = k
 
           ! Expand score if necessary and add to tally results.
           call expand_and_score(p, t, score_index, filter_index, score_bin, &
-               score, score_index)
+               score, k)
         end do SCORE_LOOP
 
         ! ======================================================================

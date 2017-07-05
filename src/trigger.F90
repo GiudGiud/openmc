@@ -83,7 +83,7 @@ contains
 
 !===============================================================================
 ! CHECK_TALLY_TRIGGERS checks whether uncertainties are below the threshold,
-! and finds the maximum  uncertainty/threshold ratio for all triggers
+! and finds the maximum uncertainty/threshold ratio for all triggers
 !===============================================================================
 
   subroutine check_tally_triggers(max_ratio, tally_id, name)

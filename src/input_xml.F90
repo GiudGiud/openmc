@@ -3910,6 +3910,12 @@ contains
           case ('partial_current')
             t % type = TALLY_SURFACE
             t % score_bins(j) = SCORE_CURRENT
+          case ('partial_current-polar-pn')
+            t % type = TALLY_SURFACE
+            ! Setup P0:Pn
+            t % score_bins(j : j + n_bins - 1) = SCORE_CURRENT_POLAR_PN
+            t % moment_order(j : j + n_bins - 1) = n_order
+            j = j + n_bins - 1
           case ('events')
             t % score_bins(j) = SCORE_EVENTS
           case ('elastic', '(n,elastic)')
@@ -4027,7 +4033,7 @@ contains
           ! Determine number of bins for scores with expansions
           n_order = t % moment_order(j)
           select case (t % score_bins(j))
-          case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN)
+          case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN, SCORE_CURRENT_POLAR_PN)
             n_bins = n_order + 1
           case (SCORE_FLUX_YN, SCORE_TOTAL_YN, SCORE_SCATTER_YN, &
                SCORE_NU_SCATTER_YN)
