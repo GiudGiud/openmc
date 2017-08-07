@@ -305,7 +305,7 @@ module constants
        EVENT_ABSORB  =  2
 
   ! Tally score type
-  integer, parameter :: N_SCORE_TYPES = 24
+  integer, parameter :: N_SCORE_TYPES = 25
   integer, parameter :: &
        SCORE_FLUX               = -1,  & ! flux
        SCORE_TOTAL              = -2,  & ! total reaction rate
@@ -330,7 +330,8 @@ module constants
        SCORE_INVERSE_VELOCITY   = -21, & ! flux-weighted inverse velocity
        SCORE_FISS_Q_PROMPT      = -22, & ! prompt fission Q-value
        SCORE_FISS_Q_RECOV       = -23, & ! recoverable fission Q-value
-       SCORE_DECAY_RATE         = -24    ! delayed neutron precursor decay rate
+       SCORE_DECAY_RATE         = -24, & ! delayed neutron precursor decay rate
+       SCORE_CURRENT_POLAR_PN   = -25    ! partial current decomposed on polar Legendre P basis
 
   ! Maximum scattering order supported
   integer, parameter :: MAX_ANG_ORDER = 10
@@ -339,6 +340,7 @@ module constants
   character(*), parameter :: &
        MOMENT_STRS(6)    = (/ "scatter-p   ",   &
                               "nu-scatter-p",   &
+                              "current_polar-p",&
                               "flux-y      ",   &
                               "total-y     ",   &
                               "scatter-y   ",   &
@@ -347,7 +349,7 @@ module constants
                               "nu-scatter- "/)
 
   ! Location in MOMENT_STRS where the YN data begins
-  integer, parameter :: YN_LOC = 3
+  integer, parameter :: YN_LOC = 4
 
   ! Tally map bin finding
   integer, parameter :: NO_BIN_FOUND = -1

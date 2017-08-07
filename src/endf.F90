@@ -50,6 +50,8 @@ contains
       string = "kappa-fission"
     case (SCORE_CURRENT)
       string = "current"
+    case (SCORE_CURRENT_POLAR_PN)
+      string = "current_polar_PN"
     case (SCORE_FLUX_YN)
       string = "flux-yn"
     case (SCORE_TOTAL_YN)

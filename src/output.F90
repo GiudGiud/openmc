@@ -759,6 +759,7 @@ contains
     score_names(abs(SCORE_FISS_Q_PROMPT))      = "Prompt fission power"
     score_names(abs(SCORE_FISS_Q_RECOV))       = "Recoverable fission power"
     score_names(abs(SCORE_CURRENT))            = "Current"
+    score_names(abs(SCORE_CURRENT_POLAR_PN))   = "Partial current polar PN"
 
     ! Create filename for tally output
     filename = trim(path_output) // "tallies.out"
@@ -926,7 +927,7 @@ contains
               write(UNIT=unit_tally, FMT='(1X,2A,1X,A,"+/- ",A)') &
                    repeat(" ", indent), score_name, to_str(x(1)), &
                    trim(to_str(t_value * x(2)))
-            case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN)
+            case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN, SCORE_CURRENT_POLAR_PN)
               score_index = score_index - 1
               do n_order = 0, t % moment_order(k)
                 score_index = score_index + 1
