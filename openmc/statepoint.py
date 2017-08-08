@@ -363,7 +363,6 @@ class StatePoint(object):
                 # Iterate over all tallies
                 for tally_id in tally_ids:
                     group = tallies_group['tally {}'.format(tally_id)]
-
                     # Read the number of realizations
                     n_realizations = group['n_realizations'].value
 
@@ -420,7 +419,6 @@ class StatePoint(object):
                         # If this is a moment, use generic moment order
                         pattern = r'-n$|-pn$|-yn$'
                         score = re.sub(pattern, '-' + moments[j].decode(), score)
-
                         tally.scores.append(score)
 
                     # Add Tally to the global dictionary of all Tallies

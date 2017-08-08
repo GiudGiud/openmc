@@ -331,7 +331,8 @@ contains
             case (SCORE_SCATTER_N, SCORE_NU_SCATTER_N)
               str_array(k) = trim(to_str(tally % moment_order(k)))
               k = k + 1
-            case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN)
+            case (SCORE_SCATTER_PN, SCORE_NU_SCATTER_PN, &
+                 SCORE_CURRENT_POLAR_PN)
               do n_order = 0, tally % moment_order(k)
                 str_array(k) = trim(to_str(n_order))
                 k = k + 1

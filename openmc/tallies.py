@@ -996,7 +996,7 @@ class Tally(IDManagerMixin):
         # Define regex for scatter, nu-scatter and flux moment scores
         regex = [(r'^((?!nu-)scatter-\d)', r'^((?!nu-)scatter-(P|p)\d)'),
                  (r'nu-scatter-\d', r'nu-scatter-(P|p)\d'),
-                 (r'flux-\d', r'flux-(P|p)\d')]
+                 (r'flux-\d', r'flux-(P|p)\d'), r'current_polar-(P|p)\d']
 
         # Find all non-scattering and non-flux moment scores
         scores = [x for x in self.scores if
