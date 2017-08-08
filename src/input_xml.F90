@@ -3821,7 +3821,7 @@ contains
           case ('fission-q-recoverable')
             t % score_bins(j) = SCORE_FISS_Q_RECOV
 
-          case ('partial_current_polar-pn')
+          case ('current_polar-pn')
             t % type = TALLY_SURFACE
             ! Setup P0:Pn
             t % score_bins(j : j + n_bins - 1) = SCORE_CURRENT_POLAR_PN

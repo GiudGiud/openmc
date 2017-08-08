@@ -338,13 +338,13 @@ module constants
 
   ! Names of *-PN & *-YN scores (MOMENT_STRS) and *-N moment scores
   character(*), parameter :: &
-       MOMENT_STRS(6)    = (/ "scatter-p   ",   &
-                              "nu-scatter-p",   &
+       MOMENT_STRS(7)    = (/ "scatter-p      ",   &
+                              "nu-scatter-p   ",   &
                               "current_polar-p",&
-                              "flux-y      ",   &
-                              "total-y     ",   &
-                              "scatter-y   ",   &
-                              "nu-scatter-y"/), &
+                              "flux-y         ",   &
+                              "total-y        ",   &
+                              "scatter-y      ",   &
+                              "nu-scatter-y   "/), &
        MOMENT_N_STRS(2)  = (/ "scatter-    ",   &
                               "nu-scatter- "/)
 

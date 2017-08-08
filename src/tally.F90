@@ -2202,7 +2202,6 @@ contains
 !$omp atomic
           t % results(RESULT_VALUE, score_index, filter_index) = &
                t % results(RESULT_VALUE, score_index, filter_index) &
-               + score * calc_pn(n, (acos(p % last_uvw(3)) / PI) * 2 - 1) / 2  !p % last_uvw(3)
                + score * calc_pn(n, (theta / PI) * 2 - 1)
         end do
         i = i + t % moment_order(i)
