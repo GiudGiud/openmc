@@ -334,7 +334,7 @@ module constants
        SCORE_CURRENT_POLAR_PN   = -25    ! partial current decomposed on polar Legendre P basis
 
   ! Maximum scattering order supported
-  integer, parameter :: MAX_ANG_ORDER = 10
+  integer, parameter :: MAX_ANG_ORDER = 20
 
   ! Names of *-PN & *-YN scores (MOMENT_STRS) and *-N moment scores
   character(*), parameter :: &
