@@ -2,9 +2,10 @@ module tracking
 
   use constants,          only: MODE_EIGENVALUE
   use cross_section,      only: calculate_xs
-  use error,              only: fatal_error, warning
+  use error,              only: warning
   use geometry,           only: find_cell, distance_to_boundary, cross_surface, &
-                                cross_lattice, check_cell_overlap
+                                cross_lattice, check_cell_overlap, &
+                                handle_lost_particle
   use global
   use output,             only: write_message
   use message_passing
@@ -74,7 +75,9 @@ contains
       if (p % coord(p % n_coord) % cell == NONE) then
         call find_cell(p, found_cell)
         if (.not. found_cell) then
-          call fatal_error("Could not locate particle " // trim(to_str(p % id)))
+          call handle_lost_particle(p, "Could not find the cell containing" &
+                     // " particle " // trim(to_str(p %id)))
+          return
         end if
 
         ! set birth cell attribute
