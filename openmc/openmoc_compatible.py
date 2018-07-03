@@ -648,6 +648,9 @@ def get_openmoc_lattice(openmc_lattice):
                np.array(dimension, dtype=np.float64))) / -2.0
     openmoc_lattice.setOffset(offset[0], offset[1], offset[2])
 
+    # Transfer the lattice outer
+    openmoc_lattice.setOuter(get_openmoc_universe(openmc_lattice.outer))
+
     # Add the OpenMC Lattice to the global collection of all OpenMC Lattices
     OPENMC_LATTICES[lattice_id] = openmc_lattice
 
