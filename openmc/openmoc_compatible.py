@@ -649,7 +649,8 @@ def get_openmoc_lattice(openmc_lattice):
     openmoc_lattice.setOffset(offset[0], offset[1], offset[2])
 
     # Transfer the lattice outer
-    openmoc_lattice.setOuter(get_openmoc_universe(openmc_lattice.outer))
+    if openmc_lattice.outer:
+        openmoc_lattice.setOuter(get_openmoc_universe(openmc_lattice.outer))
 
     # Add the OpenMC Lattice to the global collection of all OpenMC Lattices
     OPENMC_LATTICES[lattice_id] = openmc_lattice
@@ -729,6 +730,10 @@ def get_openmc_lattice(openmoc_lattice):
     openmc_lattice.pitch = width
     openmc_lattice.lower_left = lower_left
     openmc_lattice.universes = universe_array
+
+    # Transfer the lattice outer
+    if openmoc_lattice.getOuter():
+        openmc_lattice.outer = get_openmc_universe(openmoc_lattice.getOuter())
 
     # Add the OpenMC Lattice to the global collection of all OpenMC Lattices
     OPENMC_LATTICES[lattice_id] = openmc_lattice
