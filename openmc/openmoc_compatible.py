@@ -367,6 +367,8 @@ def get_openmoc_region(openmc_region, complement=False):
     if isinstance(openmc_region, openmc.Halfspace):
         surface = openmc_region.surface
         halfspace = -1 if openmc_region.side == '-' else 1
+        if complement:
+          halfspace = -1 * halfspace
         openmoc_region = \
             openmoc.Halfspace(halfspace, get_openmoc_surface(surface))
     elif (isinstance(openmc_region, openmc.Intersection) and complement==False) or \
