@@ -346,7 +346,7 @@ def get_openmoc_cell(openmc_cell):
     return openmoc_cell
 
 
-def get_openmoc_region(openmc_region):
+def get_openmoc_region(openmc_region, complement=False):
     """Return an OpenMOC region corresponding to an OpenMC region.
 
     Parameters
@@ -369,17 +369,21 @@ def get_openmoc_region(openmc_region):
         halfspace = -1 if openmc_region.side == '-' else 1
         openmoc_region = \
             openmoc.Halfspace(halfspace, get_openmoc_surface(surface))
-    elif isinstance(openmc_region, openmc.Intersection):
+    elif (isinstance(openmc_region, openmc.Intersection) and complement==False) or \
+         (isinstance(openmc_region, openmc.Union) and complement):
         openmoc_region = openmoc.Intersection()
         for openmc_node in openmc_region:
-            openmoc_region.addNode(get_openmoc_region(openmc_node))
-    elif isinstance(openmc_region, openmc.Union):
+            openmoc_region.addNode(get_openmoc_region(openmc_node, complement))
+    elif (isinstance(openmc_region, openmc.Union) and complement==False) or \
+         (isinstance(openmc_region, openmc.Intersection) and complement):
         openmoc_region = openmoc.Union()
         for openmc_node in openmc_region:
-            openmoc_region.addNode(get_openmoc_region(openmc_node))
+            openmoc_region.addNode(get_openmoc_region(openmc_node, complement))
     elif isinstance(openmc_region, openmc.Complement):
-        openmoc_region = openmoc.Complement()
-        openmoc_region.addNode(get_openmoc_region(openmc_region.node))
+        #openmoc_region = openmoc.Complement()
+        #openmoc_region.addNode(get_openmoc_region(openmc_region.node))
+        openmoc_region = openmoc.Union()
+        openmoc_region.addNode(get_openmoc_region(openmc_region.node, True))
 
     return openmoc_region
 

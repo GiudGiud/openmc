@@ -463,7 +463,7 @@ class Union(Region, MutableSequence):
         if memo is None:
             memo = {}
 
-        clone = copy.deepcopy(self)
+        clone = deepcopy(self)
         clone[:] = [n.clone(memo) for n in self]
         return clone
 
@@ -584,6 +584,6 @@ class Complement(Region):
         if memo is None:
             memo = {}
 
-        clone = copy.deepcopy(self)
+        clone = deepcopy(self)
         clone.node = self.node.clone(memo)
         return clone
