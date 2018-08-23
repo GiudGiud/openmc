@@ -115,7 +115,7 @@ class SpatialLegendreFilter(ExpansionFilter):
     ----------
     order : int
         Maximum Legendre polynomial order
-    axis : {'x', 'y', 'z'}
+    axis : {'x', 'y', 'z', 'p'}
         Axis along which to take the expansion
     minimum : float
         Minimum value along selected axis
@@ -128,7 +128,7 @@ class SpatialLegendreFilter(ExpansionFilter):
     ----------
     order : int
         Maximum Legendre polynomial order
-    axis : {'x', 'y', 'z'}
+    axis : {'x', 'y', 'z', 'p'}
         Axis along which to take the expansion
     minimum : float
         Minimum value along selected axis
@@ -175,7 +175,7 @@ class SpatialLegendreFilter(ExpansionFilter):
 
     @axis.setter
     def axis(self, axis):
-        cv.check_value('axis', axis, ('x', 'y', 'z'))
+        cv.check_value('axis', axis, ('x', 'y', 'z', 'p'))
         self._axis = axis
 
     @property

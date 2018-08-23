@@ -21,6 +21,7 @@ module tally_filter_sptl_legendre
   integer, parameter :: AXIS_X = 1
   integer, parameter :: AXIS_Y = 2
   integer, parameter :: AXIS_Z = 3
+  integer, parameter :: AXIS_P = 4
 
 !===============================================================================
 ! SPATIALLEGENDREFILTER gives Legendre moments of the particle's normalized
@@ -61,6 +62,8 @@ contains
       this % axis = AXIS_Y
     case ('z')
       this % axis = AXIS_Z
+    case ('p')
+      this % axis = AXIS_P
     end select
     call get_node_value(node, "min", this % min)
     call get_node_value(node, "max", this % max)
@@ -79,7 +82,11 @@ contains
     real(C_DOUBLE) :: x       ! Position on specified axis
     real(C_DOUBLE) :: x_norm  ! Normalized position
 
-    x = p % coord(1) % xyz(this % axis)
+    if (this % axis < 4) then
+      x = p % coord(1) % xyz(this % axis)
+    else
+      x = (acos(p % last_uvw(3)) / PI) * 2 - 1
+    end if
     if (this % min <= x .and. x <= this % max) then
       ! Calculate normalized position between min and max
       x_norm = TWO*(x - this % min)/(this % max - this % min) - ONE
@@ -107,6 +114,8 @@ contains
       axis = 'y'
     case (AXIS_Z)
       axis = 'z'
+    case (AXIS_P)
+      axis = 'p'
     end select
     call write_dataset(filter_group, 'axis', axis)
     call write_dataset(filter_group, 'min', this % min)
@@ -127,6 +136,8 @@ contains
       axis = 'y'
     case (AXIS_Z)
       axis = 'z'
+    case (AXIS_P)
+      axis = 'p'
     end select
     label = "Legendre expansion, " // axis // " axis, P" // &
          trim(to_str(bin - 1))
