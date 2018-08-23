@@ -21,6 +21,8 @@ SpatialLegendreFilter::from_xml(pugi::xml_node node)
     axis_ = LegendreAxis::y;
   } else if (axis == "z") {
     axis_ = LegendreAxis::z;
+  } else if (axis == "p") {
+    axis_ = LegendreAxis::p;
   } else {
     fatal_error("Unrecognized axis on SpatialLegendreFilter");
   }
@@ -41,8 +43,10 @@ SpatialLegendreFilter::get_all_bins(const Particle* p, int estimator,
     x = p->coord[0].xyz[0];
   } else if (axis_ == LegendreAxis::y) {
     x = p->coord[0].xyz[1];
-  } else {
+  } else if (axis_ == LegendreAxis::z) {
     x = p->coord[0].xyz[2];
+  } else {
+    x = acos(p->coord[0].uvw[2] / PI) * 2 - 1;
   }
 
   if (x >= min_ && x <= max_) {
@@ -69,8 +73,10 @@ SpatialLegendreFilter::to_statepoint(hid_t filter_group) const
     write_dataset(filter_group, "axis", "x");
   } else if (axis_ == LegendreAxis::y) {
     write_dataset(filter_group, "axis", "y");
-  } else {
+  } else if (axis_ == LegendreAxis::z) {
     write_dataset(filter_group, "axis", "z");
+  } else {
+    write_dataset(filter_group, "axis", "p");
   }
   write_dataset(filter_group, "min", min_);
   write_dataset(filter_group, "max", max_);
@@ -85,8 +91,10 @@ SpatialLegendreFilter::text_label(int bin) const
     out << "x";
   } else if (axis_ == LegendreAxis::y) {
     out << "y";
-  } else {
+  } else if (axis_ == LegendreAxis::p) {
     out << "z";
+  } else {
+    out << "p";
   }
   //TODO: off-by-one
   out << " axis, P" << std::to_string(bin - 1);
