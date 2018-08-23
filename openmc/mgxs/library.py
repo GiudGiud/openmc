@@ -497,7 +497,7 @@ class Library(object):
                 mgxs.energy_groups = self.energy_groups
                 mgxs.by_nuclide = self.by_nuclide
                 if self.estimator is not None:
-                    mgxs.estimator = self.estimator
+                    mgxs._estimator = self.estimator
 
                 if mgxs_type in openmc.mgxs.MDGXS_TYPES:
                     if self.num_delayed_groups == 0:
