@@ -143,7 +143,6 @@ class SpatialLegendreFilter(ExpansionFilter):
 
     def __init__(self, order, axis, minimum, maximum, filter_id=None):
         super().__init__(order, filter_id)
-        print(order, axis, minimum, maximum)
         self.axis = axis
         self.minimum = minimum
         self.maximum = maximum

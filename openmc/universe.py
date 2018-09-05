@@ -476,7 +476,7 @@ class Universe(IDManagerMixin):
 
         return universes
 
-    def clone(self, memo=None):
+    def clone(self, memo=None, clone_material=False):
         """Create a copy of this universe with a new unique ID, and clones
         all cells within this universe.
 
@@ -504,7 +504,7 @@ class Universe(IDManagerMixin):
             # Clone all cells for the universe clone
             clone._cells = OrderedDict()
             for cell in self._cells.values():
-                clone.add_cell(cell.clone(memo))
+                clone.add_cell(cell.clone(memo, clone_material))
 
             # Memoize the clone
             memo[self] = clone

@@ -412,7 +412,7 @@ class Cell(IDManagerMixin):
 
         return universes
 
-    def clone(self, memo=None):
+    def clone(self, memo=None, clone_material=False):
         """Create a copy of this cell with a new unique ID, and clones
         the cell's region and fill.
 
@@ -451,6 +451,8 @@ class Cell(IDManagerMixin):
                 if self.fill_type == 'distribmat':
                     clone.fill = [fill.clone(memo) if fill is not None else None
                                   for fill in self.fill]
+                elif self.fill_type == 'material' and clone_material==False:
+                    clone.fill = self.fill
                 else:
                     clone.fill = self.fill.clone(memo)
 
