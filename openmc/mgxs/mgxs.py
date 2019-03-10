@@ -65,6 +65,9 @@ MU_TREATMENTS = ('legendre', 'histogram')
 _MAX_LEGENDRE = 10
 
 
+correction_term = None
+
+
 def _df_column_convert_to_bin(df, current_name, new_name, values_to_bin,
                               reverse_order=False):
     """Convert a Pandas DataFrame column from the bin edges to an index for
@@ -2783,7 +2786,17 @@ class TransportXS(MGXS):
             trans_corr = p1_tally / self.tallies['flux (analog)']
 
             # Compute the transport-corrected total cross section
-            self._xs_tally = total_xs - trans_corr
+            if (self._domain.id != 15 and self._domain.id != 18):
+                self._xs_tally = total_xs - trans_corr
+            else:
+                print("water manual tc")
+                tc_ratio = np.array([0.8127642722,0.7142297439,0.7176368391,0.5957748157,0.5112826282,0.4941300922,0.3937111479,0.4085568234,0.3612457766,0.3368493318,0.3244880101,0.3208586099,0.3238764415,0.3300443062,0.3378023365,0.3454649482,0.3522550864,0.3584883255,0.3639025837,0.3700786656,0.3763248338,0.379669641,0.3812303863,0.3824145254,0.3829876385,0.3839090709,0.3835932215,0.3801180269,0.3803853743,0.3815500716,0.3818018225,0.3827976791,0.3840214164,0.3855276975,0.3852580118,0.3862519585,0.3864587658,0.3853524472,0.3866203823,0.387562454,0.3875571944,0.3864267185,0.3893005819,0.3890824964,0.3901868256,0.3937056263,0.3995653919,0.4068731303,0.4152049823,0.4238183659,0.4298593194,0.4374631525,0.4511921859,0.4751675198,0.5217428675,0.5819676289,0.6417669987,0.6816414299,0.6957415922,0.7153805627,0.7293746842,0.7488003757,0.7722926356,0.796929275,0.8222154211,0.8518369693,0.8826819831,0.9174723717,0.9741141646,1.022829404])
+                #print(total_xs.__dict__)
+                total_xs._mean = total_xs._mean * tc_ratio
+                self._xs_tally = total_xs
+                global correction_term
+                correction_term = total_xs._mean / tc_ratio * (1-tc_ratio)
+
             self._compute_xs()
 
         return self._xs_tally
@@ -3928,7 +3941,12 @@ class ScatterMatrixXS(MatrixMGXS):
                         scatter_p1 = \
                             scatter_p1.diagonalize_filter(energy_filter)
 
-                        self._rxn_rate_tally = scatter_p0 - scatter_p1
+                        if (self._domain.id != 15 and self._domain.id != 18):
+                            self._rxn_rate_tally = scatter_p0 - scatter_p1
+                        else:
+                            print("Manual tc on scatter rate tally")
+                            self._rxn_rate_tally = scatter_p0
+                            self._rxn_rate_tally._mean -= correction_term
 
                     # Otherwise, extract scattering moment reaction rate Tally
                     else:
@@ -4039,7 +4057,12 @@ class ScatterMatrixXS(MatrixMGXS):
                     legendre_xs_tally.order = 0
 
                     # And subtract the P1 correction from the P0 matrix
-                    self._xs_tally -= correction
+                    if (self._domain.id != 15 and self._domain.id != 18):
+                        self._xs_tally -= correction
+                    else:
+                        print("Manual tc on scattering matrices") 
+                        print(self._xs_tally._mean.shape, correction_term.flatten().shape)
+                        self._xs_tally._mean = self._xs_tally._mean - correction_term.flatten()
 
                 self._compute_xs()
 
