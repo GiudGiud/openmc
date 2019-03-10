@@ -2768,6 +2768,8 @@ class TransportXS(MGXS):
                 raise ValueError(msg)
 
             # Switch EnergyoutFilter to EnergyFilter.
+            #self.tallies['correction'].get_slice(
+            #            filters=[openmc.LegendreFilter], filter_bins=[('P1',)])
             p1_tally = self.tallies['scatter-1']
             old_filt = p1_tally.filters[-2]
             new_filt = openmc.EnergyFilter(old_filt.values)
@@ -2784,18 +2786,29 @@ class TransportXS(MGXS):
 
             # Compute transport correction term
             trans_corr = p1_tally / self.tallies['flux (analog)']
+            #print("P1 tally in transport XS", p1_tally._mean)
 
             # Compute the transport-corrected total cross section
             if (self._domain.id != 15 and self._domain.id != 18):
                 self._xs_tally = total_xs - trans_corr
             else:
-                print("water manual tc")
-                tc_ratio = np.array([0.8127642722,0.7142297439,0.7176368391,0.5957748157,0.5112826282,0.4941300922,0.3937111479,0.4085568234,0.3612457766,0.3368493318,0.3244880101,0.3208586099,0.3238764415,0.3300443062,0.3378023365,0.3454649482,0.3522550864,0.3584883255,0.3639025837,0.3700786656,0.3763248338,0.379669641,0.3812303863,0.3824145254,0.3829876385,0.3839090709,0.3835932215,0.3801180269,0.3803853743,0.3815500716,0.3818018225,0.3827976791,0.3840214164,0.3855276975,0.3852580118,0.3862519585,0.3864587658,0.3853524472,0.3866203823,0.387562454,0.3875571944,0.3864267185,0.3893005819,0.3890824964,0.3901868256,0.3937056263,0.3995653919,0.4068731303,0.4152049823,0.4238183659,0.4298593194,0.4374631525,0.4511921859,0.4751675198,0.5217428675,0.5819676289,0.6417669987,0.6816414299,0.6957415922,0.7153805627,0.7293746842,0.7488003757,0.7722926356,0.796929275,0.8222154211,0.8518369693,0.8826819831,0.9174723717,0.9741141646,1.022829404])
+
+                print("Manual transport correction for water transport XS")
+                tc_ratio = np.flipud(np.array([0.8127642722,0.7142297439,0.7176368391,0.5957748157,0.5112826282,0.4941300922,0.3937111479,0.4085568234,0.3612457766,0.3368493318,0.3244880101,0.3208586099,0.3238764415,0.3300443062,0.3378023365,0.3454649482,0.3522550864,0.3584883255,0.3639025837,0.3700786656,0.3763248338,0.379669641,0.3812303863,0.3824145254,0.3829876385,0.3839090709,0.3835932215,0.3801180269,0.3803853743,0.3815500716,0.3818018225,0.3827976791,0.3840214164,0.3855276975,0.3852580118,0.3862519585,0.3864587658,0.3853524472,0.3866203823,0.387562454,0.3875571944,0.3864267185,0.3893005819,0.3890824964,0.3901868256,0.3937056263,0.3995653919,0.4068731303,0.4152049823,0.4238183659,0.4298593194,0.4374631525,0.4511921859,0.4751675198,0.5217428675,0.5819676289,0.6417669987,0.6816414299,0.6957415922,0.7153805627,0.7293746842,0.7488003757,0.7722926356,0.796929275,0.8222154211,0.8518369693,0.8826819831,0.9174723717,0.9741141646,1.022829404]))
                 #print(total_xs.__dict__)
-                total_xs._mean = total_xs._mean * tc_ratio
+                #import matplotlib.pyplot as plt
+                #plt.plot(total_xs._mean[:,0,0])
+                #plt.plot(total_xs._mean[:,0,0])
+                #plt.draw()
+                #plt.savefig('lla')
                 self._xs_tally = total_xs
                 global correction_term
-                correction_term = total_xs._mean / tc_ratio * (1-tc_ratio)
+                correction_term = self._xs_tally._mean[:,0,0] * (1.-tc_ratio)
+                #print(self._xs_tally._mean[:,0,0])
+                self._xs_tally._mean[:,0,0] -= correction_term
+                #print(1-tc_ratio)
+                #print(correction_term)
+                #print(trans_corr._mean[:,0,0])
 
             self._compute_xs()
 
@@ -3944,7 +3957,7 @@ class ScatterMatrixXS(MatrixMGXS):
                         if (self._domain.id != 15 and self._domain.id != 18):
                             self._rxn_rate_tally = scatter_p0 - scatter_p1
                         else:
-                            print("Manual tc on scatter rate tally")
+                            print("Manual tc on scatter rate tally  -- INVESTIGATE")
                             self._rxn_rate_tally = scatter_p0
                             self._rxn_rate_tally._mean -= correction_term
 
@@ -4030,6 +4043,7 @@ class ScatterMatrixXS(MatrixMGXS):
                     scatter_p1 = self.tallies['correction'].get_slice(
                         filters=[openmc.LegendreFilter], filter_bins=[('P1',)])
                     flux = self.tallies['flux (analog)']
+                    #print("P1 tally in scatter XS", scatter_p1._mean)
 
                     # Set the Legendre order of the P1 tally to be P0
                     # so it can be subtracted
@@ -4042,7 +4056,7 @@ class ScatterMatrixXS(MatrixMGXS):
                     energy_filter = copy.deepcopy(energy_filter)
                     scatter_p1 = scatter_p1.diagonalize_filter(energy_filter)
 
-                    # Compute the trasnport correction term
+                    # Compute the transport correction term
                     correction = scatter_p1 / flux
 
                     # Override the nuclides for tally arithmetic
@@ -4060,9 +4074,13 @@ class ScatterMatrixXS(MatrixMGXS):
                     if (self._domain.id != 15 and self._domain.id != 18):
                         self._xs_tally -= correction
                     else:
-                        print("Manual tc on scattering matrices") 
-                        print(self._xs_tally._mean.shape, correction_term.flatten().shape)
-                        self._xs_tally._mean = self._xs_tally._mean - correction_term.flatten()
+                        np.set_printoptions(threshold=np.inf)
+                        print("Manual tc on scattering matrices in water") 
+                        #print(self._xs_tally._mean.shape, np.diag(correction_term).flatten().shape)
+                        #print("corr term", np.diag(correction_term).flatten())
+                        #print(correction._mean[:, 0, 0])
+                        self._xs_tally._mean -= [[[x]] for x in np.diag(correction_term).flatten()]
+
 
                 self._compute_xs()
 
