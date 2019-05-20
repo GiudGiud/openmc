@@ -95,7 +95,6 @@ if(optimize)
   list(REMOVE_ITEM cxxflags -O2)
   list(APPEND cxxflags -O3)
 endif()
-
 if(coverage)
   list(APPEND --coverage)
 endif()
