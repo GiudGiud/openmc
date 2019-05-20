@@ -96,7 +96,8 @@ if(optimize)
   list(APPEND cxxflags -O3)
 endif()
 if(coverage)
-  list(APPEND cxxflags --coverage)
+  list(APPEND cxxflags -fprofile-arcs -ftest-coverage)
+  list(APPEND ldflags -fprofile-arcs)
 endif()
 
 # Show flags being used
