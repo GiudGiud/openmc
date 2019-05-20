@@ -96,6 +96,10 @@ if(optimize)
   list(APPEND cxxflags -O3)
 endif()
 
+if(coverage)
+  list(APPEND --coverage)
+endif()
+
 # Show flags being used
 message(STATUS "OpenMC C++ flags: ${cxxflags}")
 message(STATUS "OpenMC Linker flags: ${ldflags}")
