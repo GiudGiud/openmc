@@ -96,7 +96,7 @@ if(optimize)
   list(APPEND cxxflags -O3)
 endif()
 if(coverage)
-  list(APPEND --coverage)
+  list(APPEND cxxflags --coverage)
 endif()
 
 # Show flags being used

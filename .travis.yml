@@ -55,7 +55,7 @@ script:
 after_success:
   - ls
   - ls build
-  - ls build/*
+  - ls build/libopenmc.dir/src
   - ls src
-  - cpp-coveralls -i src --dump cpp_cov.json
+  - cpp-coveralls -i src -i build/libopenmc.dir/src --dump cpp_cov.json
   - coveralls --merge=cpp_cov.json
