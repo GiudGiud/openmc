@@ -57,5 +57,5 @@ after_success:
   - ls build
   - ls build/libopenmc.dir/src
   - ls src
-  - cpp-coveralls -i src -i build/libopenmc.dir/src --dump cpp_cov.json
+  - cpp-coveralls -i src -i include --exclude-pattern "/usr/*" --dump cpp_cov.json
   - coveralls --merge=cpp_cov.json
