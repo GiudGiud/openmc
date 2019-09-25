@@ -497,7 +497,7 @@ class Library(object):
                 mgxs.energy_groups = self.energy_groups
                 mgxs.by_nuclide = self.by_nuclide
                 if self.estimator is not None:
-                    mgxs.estimator = self.estimator
+                    mgxs._estimator = self.estimator
 
                 if mgxs_type in openmc.mgxs.MDGXS_TYPES:
                     if self.num_delayed_groups == 0:
@@ -717,7 +717,7 @@ class Library(object):
         scalar flux-weighted average cross section across the subdomains.
 
         NOTE: This method is only relevant for distribcell domain types and
-        simplys returns a deep copy of the library for all other domains types.
+        simply returns a deep copy of the library for all other domains types.
 
         Returns
         -------

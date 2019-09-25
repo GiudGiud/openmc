@@ -318,7 +318,6 @@ def get_openmoc_cell(openmc_cell):
     openmoc_cell = openmoc.Cell(cell_id, name)
 
     fill = openmc_cell.fill
-
     if openmc_cell.fill_type == 'material':
         openmoc_cell.setFill(get_openmoc_material(fill))
     elif openmc_cell.fill_type == 'universe':

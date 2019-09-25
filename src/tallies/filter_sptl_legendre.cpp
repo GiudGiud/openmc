@@ -46,7 +46,7 @@ SpatialLegendreFilter::get_all_bins(const Particle* p, int estimator,
   } else if (axis_ == LegendreAxis::z) {
     x = p->coord[0].xyz[2];
   } else {
-    x = acos(p->coord[0].uvw[2] / PI) * 2 - 1;
+    x = acos(p->last_uvw[2]) / PI * 2 - 1;  //////////////////////////////////////
   }
 
   if (x >= min_ && x <= max_) {

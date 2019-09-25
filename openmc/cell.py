@@ -422,6 +422,9 @@ class Cell(IDManagerMixin):
         memo : dict or None
             A nested dictionary of previously cloned objects. This parameter
             is used internally and should not be specified by the user.
+        clone_material : String or boolean
+            Wether to clone the material when cloning the cell. If set to "depletable",
+            only clones if material is depletable.
 
         Returns
         -------
@@ -452,10 +455,21 @@ class Cell(IDManagerMixin):
                 if self.fill_type == 'distribmat':
                     clone.fill = [fill.clone(memo) if fill is not None else None
                                   for fill in self.fill]
+                # Material fill
+                # Avoid creating too many materials
+                elif self.fill_type == 'material' and clone_material==True:
+                    clone.fill = self.fill.clone(memo)
                 elif self.fill_type == 'material' and clone_material==False:
                     clone.fill = self.fill
+                # Avoid creating too many materials
+                elif self.fill_type == 'material' and clone_material=="depletable":
+                    if self.fill.depletable:
+                        clone.fill = self.fill.clone(memo)
+                    else:
+                        clone.fill = self.fill
+                # Universe fill
                 else:
-                    clone.fill = self.fill.clone(memo)
+                    clone.fill = self.fill.clone(memo, clone_material)
 
             # Memoize the clone
             memo[self] = clone
