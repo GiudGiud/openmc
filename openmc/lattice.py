@@ -694,19 +694,20 @@ class RectLattice(Lattice):
     # fissile_only : boolean to tell if clones should be made only for fissile materials
     # no_rotations : boolean to say whether to have rotations of cells when reconstructing lattice
     #NOTE - specialized to BEAVRS by getting rid of rod names and others
-    #     - symmetries arent rebuilt in reconstructed map
-    #     - material cloning policy is hard coded
+    #     - material cloning policy is hard coded & not available in main branch
+    # water = material to replace with a clone when patterning -> use that + clone_material for implementation (instead of depletable)
+    # use a "lowest level lattice" instead of no_rotations. Use a flag to cancel rotations at lowest level
 
     def discretize_lns(self, fissile_only=True,
-                       neighbors=[None for i in range(8)],
-                       no_rotations=False):
+                       neighbors=["None" for i in range(8)],
+                       no_rotations=False, water=None):
 
         if self.ndim == 3:
             raise ValueError("LNS discretization is not implemented for 3D lattices")
 
         # Use outer universe if some neighbors are missing
         if self.outer is not None:
-            neighbors = [outer.name if neigh is None else neigh for neigh in neighbors]
+            neighbors = [outer.name if neigh is "None" else neigh for neigh in neighbors]
 
         # Analyze lattice, find unique patterns, excluding rotation
         patterns_dict = {}
@@ -720,6 +721,10 @@ class RectLattice(Lattice):
 
                 # Skip dummy universes and Baffle
                 if "Dummy" in self.universes[x,y].name or "Baffle" in self.universes[x,y].name:
+                    continue
+
+                # Skip control rod, BPRAs and empty guide tubes when discretizing assembly
+                if "Guide Tube" in self.universes[x,y].name:
                     continue
 
                 # Form the pattern at and around each universe
@@ -772,6 +777,7 @@ class RectLattice(Lattice):
                 #print(i, j, pattern, neighbors)
                 # Make all baffle and RCCA neighbors have the same name
                 # Merge no BAs with RCCA since rods are out
+                #print(pattern)
                 for p1 in range(3):
                     for p2 in range(3):
                         if "RCCA" in pattern[p1,p2]:
@@ -781,9 +787,9 @@ class RectLattice(Lattice):
                         if "Baffle" in pattern[p1,p2]:
                             pattern[p1,p2] = "Baffle"
                         if "6E" in pattern[p1,p2] or "6N" in pattern[p1,p2] or "6W" in pattern[p1,p2] or "6S" in pattern[p1,p2]:
-                            pattern[p1,p2] = pattern[p1,p2].split("6")[0]+"6"
+                            pattern[p1,p2] = pattern[p1,p2].split("6")[0]+"6BA"
                         if "15NW" in pattern[p1,p2] or "15NE" in pattern[p1,p2] or "15SE" in pattern[p1,p2] or "15SW" in pattern[p1,p2]:
-                            pattern[p1,p2] = pattern[p1,p2].split("15")[0]+"15"
+                            pattern[p1,p2] = pattern[p1,p2].split("15")[0]+"15BA"
 
                 #print(pattern)
                 # Look for pattern in dictionary of patterns found
@@ -822,6 +828,8 @@ class RectLattice(Lattice):
 
         #print(len(patterns_dict.keys()))
         #print(pattern_map)
+        #print(pattern_rotation)
+        #stop
         #print(patterns_dict.keys())
 
         # Discretize lattice
@@ -830,7 +838,7 @@ class RectLattice(Lattice):
             # Create a clone at that position
             #print("Cloning", positions[0][1], positions[0][0])
             # Only clone fuel materials at the lowest level
-            if no_rotations:
+            if not no_rotations:
                 clone_strat = False
             else:
                 clone_strat = "depletable"
@@ -838,7 +846,6 @@ class RectLattice(Lattice):
             #new_universe = self.universes[positions[0][1], positions[0][0]]
             #print(self.universes[positions[0][1], positions[0][0]].id, new_universe.id)
             # LNS discretize a possible lattice in that universe
-            #print(new_universe.cells)
             for cc, sub_cell in new_universe.cells.items():
                 #print(sub_cell)
                 sub_universe = sub_cell.fill
@@ -846,22 +853,42 @@ class RectLattice(Lattice):
                 if "Lattice" in str(type(sub_universe)):
                     sub_neighbors = [pattern[0][0], pattern[0][1], pattern[0][2], pattern[1][0], pattern[1][2], pattern[2][0], pattern[2][1], pattern[2][2]]
                     #print(sub_neighbors)
-                    sub_universe.discretize_lns(neighbors=sub_neighbors, no_rotations=True)
+                    sub_universe.discretize_lns(fissile_only=True, neighbors=sub_neighbors, no_rotations=True)
+
+            # Change the water to have different water per assembly
+            if not no_rotations:
+                water_clone = water.clone()
+
+                for cell in new_universe.get_all_cells().values():
+                    if cell.fill.id == water.id:
+                        cell.fill = water_clone
+
+            # Build a symmetric universe, for when the neighbor pattern was shifted by symmetry only
+            if not no_rotations:
+                sym_universe = new_universe.clone(clone_material=False)
+                for cc, sub_cell in sym_universe.cells.items():
+                    sub_universe = sub_cell.fill
+                    if "Lattice" in str(type(sub_universe)):
+                        #print(type(sub_universe.universes))#, sub_universe.universes)
+                        sub_universe.universes = np.transpose(sub_universe.universes)
 
             # Rebuild lattice from pattern using rotation and symmetries
-            #if False:
             for location in positions:
                 #print(location)
-                #FIXME Symmetries are not handled in reconstruction
 
-                if no_rotations or np.mod(pattern_rotation[location[0], location[1]], 4) == 0:
+                if no_rotations or pattern_rotation[location[0], location[1]] == 0:
                     self.universes[location[1], location[0]] = new_universe
 
                 else:
+                    fill_universe = new_universe
+                    direction = 1
+                    if pattern_rotation[location[0], location[1]] > 3:
+                        direction = -1
+                        fill_universe = sym_universe
                     holder_universe = openmc.Universe()
                     holder_cell = openmc.Cell()
-                    holder_cell.fill = new_universe
-                    holder_cell.rotation = (0, 0, 90*pattern_rotation[location[0], location[1]])
+                    holder_cell.fill = fill_universe
+                    holder_cell.rotation = (0, 0, -90*direction*pattern_rotation[location[0], location[1]])
                     holder_universe.add_cell(holder_cell)
                     self.universes[location[1], location[0]] = holder_universe
                     #print("New cell & uni", holder_cell.id, holder_universe.id)
