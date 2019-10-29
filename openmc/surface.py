@@ -816,13 +816,18 @@ class Cylinder(Surface, metaclass=ABCMeta):
 
     @property
     def r(self):
-        return self.coefficients['R']
+        try:
+            return self.coefficients['r']
+        except:
+            return self.coefficients['R']
 
     @r.setter
     def r(self, R):
         check_type('R coefficient', R, Real)
-        self._coefficients['R'] = R
-
+        try:
+            self._coefficients['r'] = R
+        except:
+            self._coefficients['R'] = R
 
 class XCylinder(Cylinder):
     """An infinite cylinder whose length is parallel to the x-axis of the form
@@ -868,7 +873,7 @@ class XCylinder(Cylinder):
     """
 
     _type = 'x-cylinder'
-    _coeff_keys = ('y0', 'z0', 'R')
+    _coeff_keys = ('y0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
                  y0=0., z0=0., R=1., name=''):
@@ -990,7 +995,7 @@ class YCylinder(Cylinder):
     """
 
     _type = 'y-cylinder'
-    _coeff_keys = ('x0', 'z0', 'R')
+    _coeff_keys = ('x0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
                  x0=0., z0=0., R=1., name=''):
@@ -1112,7 +1117,7 @@ class ZCylinder(Cylinder):
     """
 
     _type = 'z-cylinder'
-    _coeff_keys = ('x0', 'y0', 'R')
+    _coeff_keys = ('x0', 'y0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
                  x0=0., y0=0., R=1., name=''):
@@ -1238,7 +1243,7 @@ class Sphere(Surface):
     """
 
     _type = 'sphere'
-    _coeff_keys = ('x0', 'y0', 'z0', 'R')
+    _coeff_keys = ('x0', 'y0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
                  x0=0., y0=0., z0=0., R=1., name=''):
@@ -1262,8 +1267,10 @@ class Sphere(Surface):
 
     @property
     def r(self):
-        return self.coefficients['R']
-
+        try:
+            return self.coefficients['r']
+        except:
+            return self.coefficients['R']
     @x0.setter
     def x0(self, x0):
         check_type('x0 coefficient', x0, Real)
@@ -1282,7 +1289,10 @@ class Sphere(Surface):
     @r.setter
     def r(self, R):
         check_type('R coefficient', R, Real)
-        self._coefficients['R'] = R
+        try:
+            self._coefficients['r'] = R
+        except:
+            self._coefficients['R'] = R
 
     def bounding_box(self, side):
         """Determine an axis-aligned bounding box.
