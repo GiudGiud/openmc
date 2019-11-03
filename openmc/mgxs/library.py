@@ -717,7 +717,7 @@ class Library(object):
         scalar flux-weighted average cross section across the subdomains.
 
         NOTE: This method is only relevant for distribcell domain types and
-        simplys returns a deep copy of the library for all other domains types.
+        simply returns a deep copy of the library for all other domains types.
 
         Returns
         -------

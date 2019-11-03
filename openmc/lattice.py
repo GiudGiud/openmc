@@ -385,7 +385,7 @@ class Lattice(IDManagerMixin, metaclass=ABCMeta):
                 return []
         return [(self, idx)] + u.find(p)
 
-    def clone(self, memo=None):
+    def clone(self, memo=None, clone_material=False):
         """Create a copy of this lattice with a new unique ID, and clones
         all universes within this lattice.
 
@@ -411,19 +411,19 @@ class Lattice(IDManagerMixin, metaclass=ABCMeta):
             clone.id = None
 
             if self.outer is not None:
-                clone.outer = self.outer.clone(memo)
+                clone.outer = self.outer.clone(memo, clone_material)
 
             # Assign universe clones to the lattice clone
             for i in self.indices:
                 if isinstance(self, RectLattice):
-                    clone.universes[i] = self.universes[i].clone(memo)
+                    clone.universes[i] = self.universes[i].clone(memo, clone_material)
                 else:
                     if self.ndim == 2:
                         clone.universes[i[0]][i[1]] = \
-                            self.universes[i[0]][i[1]].clone(memo)
+                            self.universes[i[0]][i[1]].clone(memo, clone_material)
                     else:
                         clone.universes[i[0]][i[1]][i[2]] = \
-                            self.universes[i[0]][i[1]][i[2]].clone(memo)
+                            self.universes[i[0]][i[1]][i[2]].clone(memo, clone_material)
 
             # Memoize the clone
             memo[self] = clone
@@ -688,6 +688,213 @@ class RectLattice(Lattice):
             return (0 <= idx[0] < self.shape[0] and
                     0 <= idx[1] < self.shape[1] and
                     0 <= idx[2] < self.shape[2])
+
+    # neighbors list of neighbors the lattice
+    # [top-left, top, top-right, left, right, bottom-left, bottom, bottom-right]
+    # fissile_only : boolean to tell if clones should be made only for fissile materials
+    # no_rotations : boolean to say whether to have rotations of cells when reconstructing lattice
+    #NOTE - specialized to BEAVRS by getting rid of rod names and others
+    #     - material cloning policy is hard coded & not available in main branch
+    # water = material to replace with a clone when patterning -> use that + clone_material for implementation (instead of depletable)
+    # use a "lowest level lattice" instead of no_rotations. Use a flag to cancel rotations at lowest level
+
+    def discretize_lns(self, fissile_only=True,
+                       neighbors=["None" for i in range(8)],
+                       no_rotations=False, water=None):
+
+        if self.ndim == 3:
+            raise ValueError("LNS discretization is not implemented for 3D lattices")
+
+        # Use outer universe if some neighbors are missing
+        if self.outer is not None:
+            neighbors = [outer.name if neigh is "None" else neigh for neigh in neighbors]
+
+        # Analyze lattice, find unique patterns, excluding rotation
+        patterns_dict = {}
+        idx = 1
+        pattern_index = {}
+        pattern_rotation = np.zeros([self.shape[0], self.shape[1]])
+        pattern_map = np.zeros([self.shape[0], self.shape[1]])
+        pattern = np.empty(shape=(3, 3), dtype=openmc.Universe)
+        for x in range(self.shape[0]):
+            for y in range(self.shape[1]):
+
+                # Skip dummy universes and Baffle
+                if "Dummy" in self.universes[x,y].name or "Baffle" in self.universes[x,y].name:
+                    continue
+
+                # Skip control rod, BPRAs and empty guide tubes when discretizing assembly
+                if "Guide Tube" in self.universes[x,y].name:
+                    continue
+
+                # Form the pattern at and around each universe
+                pattern[1, 1] = self.universes[x, y].name
+
+                i = x
+                j = y
+                # Pattern takes into account the lattice's neighbors at the edges
+                if i==0:
+                    pattern[0, 0] = neighbors[0]
+                    pattern[1, 0] = neighbors[3]
+                    pattern[2, 0] = neighbors[5]
+                else:
+                    if j > 0:
+                        pattern[0, 0] = self.universes[y-1, x-1].name
+                    pattern[1, 0] = self.universes[y, x-1].name
+                    if j < self.shape[1] - 1:
+                        pattern[2, 0] = self.universes[y+1, x-1].name
+                if j==0:
+                    pattern[0, 0] = neighbors[0]
+                    pattern[0, 1] = neighbors[1]
+                    pattern[0, 2] = neighbors[2]
+                else:
+                    if i > 0:
+                        pattern[0, 0] = self.universes[y-1, x-1].name
+                    pattern[0, 1] = self.universes[y-1, x].name
+                    if i < self.shape[0] - 1:
+                        pattern[0, 2] = self.universes[y-1, x+1].name
+                if i==self.shape[0] - 1:
+                    pattern[0, 2] = neighbors[2]
+                    pattern[1, 2] = neighbors[4]
+                    pattern[2, 2] = neighbors[7]
+                else:
+                    if j > 0:
+                        pattern[0, 2] = self.universes[y-1, x+1].name
+                    pattern[1, 2] = self.universes[y, x+1].name
+                    if j < self.shape[1] - 1:
+                        pattern[2, 2] = self.universes[y+1, x+1].name
+                if j==self.shape[1] - 1:
+                    pattern[2, 0] = neighbors[5]
+                    pattern[2, 1] = neighbors[6]
+                    pattern[2, 2] = neighbors[7]
+                else:
+                    if i > 0:
+                        pattern[2, 0] = self.universes[y+1, x-1].name
+                    pattern[2, 1] = self.universes[y+1, x].name
+                    if i < self.shape[0] - 1:
+                        pattern[2, 2] = self.universes[y+1, x+1].name
+
+                #print(i, j, pattern, neighbors)
+                # Make all baffle and RCCA neighbors have the same name
+                # Merge no BAs with RCCA since rods are out
+                #print(pattern)
+                for p1 in range(3):
+                    for p2 in range(3):
+                        if "RCCA" in pattern[p1,p2]:
+                            pattern[p1,p2] = pattern[p1,p2].split("RCCA")[0]
+                        if "no BAs" in pattern[p1,p2]:
+                            pattern[p1,p2] = pattern[p1,p2].split("no BAs")[0]
+                        if "Baffle" in pattern[p1,p2]:
+                            pattern[p1,p2] = "Baffle"
+                        if "6E" in pattern[p1,p2] or "6N" in pattern[p1,p2] or "6W" in pattern[p1,p2] or "6S" in pattern[p1,p2]:
+                            pattern[p1,p2] = pattern[p1,p2].split("6")[0]+"6BA"
+                        if "15NW" in pattern[p1,p2] or "15NE" in pattern[p1,p2] or "15SE" in pattern[p1,p2] or "15SW" in pattern[p1,p2]:
+                            pattern[p1,p2] = pattern[p1,p2].split("15")[0]+"15BA"
+
+                #print(pattern)
+                # Look for pattern in dictionary of patterns found
+                found = False
+                for known_pattern, locations in patterns_dict.items():
+
+                    # Look at all rotations of pattern
+                    for ii in range(4):
+                        if not found and tuple(map(tuple, pattern)) == known_pattern:
+                            locations.append((x, y))
+                            found = True
+                            pattern_map[x, y] = pattern_index[tuple(map(tuple, pattern))]
+                            pattern_rotation[x, y] = ii
+                        pattern = np.rot90(pattern)
+
+                    # Look at transpose of pattern and its rotations
+                    pattern = np.transpose(pattern)
+                    for ii in range(4, 8):
+                        if not found and tuple(map(tuple, pattern)) == known_pattern:
+                            locations.append((x, y))
+                            found = True
+                            pattern_map[x, y] = pattern_index[tuple(map(tuple, pattern))]
+                            pattern_rotation[x, y] = ii
+                        pattern = np.rot90(pattern)
+                    pattern = np.transpose(pattern)
+
+                # Create new pattern
+                if not found:
+                    patterns_dict[tuple(map(tuple, pattern))] = [(x, y)]
+
+                    # Keep track of rotation of pattern, and which one it was
+                    pattern_index[tuple(map(tuple, pattern))] = idx
+                    pattern_map[x, y] = idx
+                    pattern_rotation[x, y] = 0
+                    idx += 1
+
+        #print(len(patterns_dict.keys()))
+        #print(pattern_map)
+        #print(pattern_rotation)
+        #stop
+        #print(patterns_dict.keys())
+
+        # Discretize lattice
+        for pattern, positions in patterns_dict.items():
+
+            # Create a clone at that position
+            #print("Cloning", positions[0][1], positions[0][0])
+            # Only clone fuel materials at the lowest level
+            if not no_rotations:
+                clone_strat = False
+            else:
+                clone_strat = "depletable"
+            new_universe = self.universes[positions[0][1], positions[0][0]].clone(clone_material=clone_strat)
+            #new_universe = self.universes[positions[0][1], positions[0][0]]
+            #print(self.universes[positions[0][1], positions[0][0]].id, new_universe.id)
+            # LNS discretize a possible lattice in that universe
+            for cc, sub_cell in new_universe.cells.items():
+                #print(sub_cell)
+                sub_universe = sub_cell.fill
+                #print(type(sub_universe))
+                if "Lattice" in str(type(sub_universe)):
+                    sub_neighbors = [pattern[0][0], pattern[0][1], pattern[0][2], pattern[1][0], pattern[1][2], pattern[2][0], pattern[2][1], pattern[2][2]]
+                    #print(sub_neighbors)
+                    sub_universe.discretize_lns(fissile_only=True, neighbors=sub_neighbors, no_rotations=True)
+
+            # Change the water to have different water per assembly
+            if not no_rotations:
+                water_clone = water.clone()
+
+                for cell in new_universe.get_all_cells().values():
+                    if cell.fill.id == water.id:
+                        cell.fill = water_clone
+
+            # Build a symmetric universe, for when the neighbor pattern was shifted by symmetry only
+            if not no_rotations:
+                sym_universe = new_universe.clone(clone_material=False)
+                for cc, sub_cell in sym_universe.cells.items():
+                    sub_universe = sub_cell.fill
+                    if "Lattice" in str(type(sub_universe)):
+                        #print(type(sub_universe.universes))#, sub_universe.universes)
+                        sub_universe.universes = np.transpose(sub_universe.universes)
+
+            # Rebuild lattice from pattern using rotation and symmetries
+            for location in positions:
+                #print(location)
+
+                if no_rotations or pattern_rotation[location[0], location[1]] == 0:
+                    self.universes[location[1], location[0]] = new_universe
+
+                else:
+                    fill_universe = new_universe
+                    direction = 1
+                    if pattern_rotation[location[0], location[1]] > 3:
+                        direction = -1
+                        fill_universe = sym_universe
+                    holder_universe = openmc.Universe()
+                    holder_cell = openmc.Cell()
+                    holder_cell.fill = fill_universe
+                    holder_cell.rotation = (0, 0, -90*direction*pattern_rotation[location[0], location[1]])
+                    holder_universe.add_cell(holder_cell)
+                    self.universes[location[1], location[0]] = holder_universe
+                    #print("New cell & uni", holder_cell.id, holder_universe.id)
+
+
+        #print("Discretized lattice")#, self.universes)
 
     def create_xml_subelement(self, xml_element):
 
