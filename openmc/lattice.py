@@ -698,7 +698,7 @@ class RectLattice(Lattice):
     # water = material to replace with a clone when patterning -> use that + clone_material for implementation (instead of depletable)
     # use a "lowest level lattice" instead of no_rotations. Use a flag to cancel rotations at lowest level
 
-    def discretize_lns(self, fissile_only=True,
+    def discretize_lns(self, strategy="lns", fissile_only=True,
                        neighbors=["None" for i in range(8)],
                        no_rotations=False, water=None):
 
@@ -795,6 +795,10 @@ class RectLattice(Lattice):
                 # Look for pattern in dictionary of patterns found
                 found = False
                 for known_pattern, locations in patterns_dict.items():
+
+                    # Degenerate strategy is same as no neighbors
+                    if strategy == "degenerate":
+                        break
 
                     # Look at all rotations of pattern
                     for ii in range(4):

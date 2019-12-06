@@ -413,7 +413,7 @@ class Cell(IDManagerMixin):
 
         return universes
 
-    def clone(self, memo=None, clone_material=False):
+    def clone(self, memo=None, clone_material=False, clone_region=False):
         """Create a copy of this cell with a new unique ID, and clones
         the cell's region and fill.
 
@@ -449,8 +449,11 @@ class Cell(IDManagerMixin):
             # Restore paths on original instance
             self._paths = paths
 
-            if self.region is not None:
+            if self.region is not None and clone_region:
                 clone.region = self.region.clone(memo)
+            else:
+                clone.region = self.region
+
             if self.fill is not None:
                 if self.fill_type == 'distribmat':
                     clone.fill = [fill.clone(memo) if fill is not None else None
