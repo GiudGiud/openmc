@@ -66,6 +66,8 @@ _MAX_LEGENDRE = 10
 
 
 correction_term = None
+water_name      = "Water"
+consistent      = True
 
 
 def _df_column_convert_to_bin(df, current_name, new_name, values_to_bin,
@@ -2790,12 +2792,15 @@ class TransportXS(MGXS):
             #print("P1 tally in transport XS", p1_tally._mean)
 
             # Compute the transport-corrected total cross section
-            if (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361]  or "Water" not in self._domain.name):
+            if (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361]  or water_name not in self._domain.name):
                 self._xs_tally = total_xs - trans_corr
 
                 # To use outscatter correction for the scattering matrix
                 global correction_term
-                correction_term = trans_corr._mean[:,0,0]
+                correction_term = (trans_corr)._mean[:,0,0]
+
+                if not consistent:
+                    correction_term *= self.tallies['flux (analog)']._mean[:,0,0]
 
                 if False and self.energy_groups.num_groups == 70 and "Fuel" in self._domain.name:
                     print("Infinite medium TC for FUEL transport XS", self._domain.id, self._domain.name)
@@ -2889,20 +2894,27 @@ class TransportXS(MGXS):
 
                 elif self.energy_groups.num_groups == 70:  #XStr
 
-                    tc_ratio = np.flipud(np.array([0.80972397,  0.72130329,  0.68789101,  0.61131338,  0.5738456 ,
-        0.47936447,  0.45730506,  0.40549796,  0.34490084,  0.31456119,
-        0.2982573 ,  0.29248636,  0.29431306,  0.30054235,  0.30931343,
-        0.31885687,  0.32758032,  0.33654698,  0.344335  ,  0.35432632,
-        0.36483979,  0.3716926 ,  0.37538348,  0.37796428,  0.38048592,
-        0.38181681,  0.38346704,  0.38449426,  0.37855655,  0.37692669,
-        0.37787507,  0.37988568,  0.38261305,  0.38358302,  0.38423223,
-        0.39001748,  0.38828148,  0.38310723,  0.38507151,  0.39125796,
-        0.390875  ,  0.38555577,  0.38832346,  0.38996205,  0.39233786,
-        0.39748207,  0.41409942,  0.46211802,  0.51193028,  0.54896742,
-        0.55966738,  0.57346979,  0.58689583,  0.6018177 ,  0.62452074,
-        0.64311075,  0.66671407,  0.69054721,  0.70702378,  0.72094174,
-        0.73692952,  0.74543788,  0.76419417,  0.78350323,  0.80224502,
-        0.82571286,  0.85721067,  0.89714458,  0.95191935,  0.990448  ]))
+                    tc_ratio = np.flipud(np.array([0.8189335898, 0.7171004501,0.7179104029,0.5958063524,0.5112963144,0.4939522845,0.3935862429,0.4085647192,0.3612491235,0.3368486805,
+0.3244944643,0.3208780319,0.3238900581,0.3301005518,0.337835761,0.3455370588,0.3523611583,0.3585713731,0.3640206464,0.3702622804,0.3765955003,0.3801034377,0.3818183742,0.3831262258,
+0.384157867,0.3850760689,0.386043632,0.3865103218,0.391675093,0.3959932601,0.3984433128,0.4004195122,0.4038773319,0.4055351116,0.4065461328,0.4103127084,0.4096276757,0.4070259779,
+0.4085417206,0.4115907963,0.4119190623,0.4084769254,0.4107409665,0.4123761582,0.4154519858,0.4203353461,0.4323093437,0.4613846479,0.4985176112,0.5318252273,0.5462820841,0.5629597182,
+0.5814699254,0.6018690054,0.6284834404,0.6516079251,0.6781086267,0.702493394,0.7196126135,0.734103603,0.7494621789,0.7585165614,0.7767654761,0.795807592,0.8146164755,0.8369902234,
+0.868126751,0.9086581851,0.9605758947,1.0019275539]))
+
+     #               tc_ratio = np.flipud(np.array([0.80972397,  0.72130329,  0.68789101,  0.61131338,  0.5738456 ,
+     #   0.47936447,  0.45730506,  0.40549796,  0.34490084,  0.31456119,
+     #   0.2982573 ,  0.29248636,  0.29431306,  0.30054235,  0.30931343,
+     #   0.31885687,  0.32758032,  0.33654698,  0.344335  ,  0.35432632,
+     #   0.36483979,  0.3716926 ,  0.37538348,  0.37796428,  0.38048592,
+     #   0.38181681,  0.38346704,  0.38449426,  0.37855655,  0.37692669,
+     #   0.37787507,  0.37988568,  0.38261305,  0.38358302,  0.38423223,
+     #   0.39001748,  0.38828148,  0.38310723,  0.38507151,  0.39125796,
+     #   0.390875  ,  0.38555577,  0.38832346,  0.38996205,  0.39233786,
+     #   0.39748207,  0.41409942,  0.46211802,  0.51193028,  0.54896742,
+     #   0.55966738,  0.57346979,  0.58689583,  0.6018177 ,  0.62452074,
+     #   0.64311075,  0.66671407,  0.69054721,  0.70702378,  0.72094174,
+     #   0.73692952,  0.74543788,  0.76419417,  0.78350323,  0.80224502,
+     #   0.82571286,  0.85721067,  0.89714458,  0.95191935,  0.990448  ]))
 
 
  #                   tc_ratio = np.flipud(np.array([ 0.83404015,  0.73285528,  0.72580406,  0.62549974,  0.6019338 ,
@@ -2993,9 +3005,12 @@ class TransportXS(MGXS):
                 correction_term = self._xs_tally._mean[:,0,0] * (1.-tc_ratio)
                 #print(self._xs_tally._mean[:,0,0])
                 self._xs_tally._mean[:,0,0] -= correction_term
+                #print(self._xs_tally._mean[:,0,0])
                 #print(1-tc_ratio)
                 #print(correction_term)
                 #print(trans_corr._mean[:,0,0])
+                if not consistent: 
+                    correction_term *= self.tallies['flux (analog)']._mean[:,0,0]
 
             self._compute_xs()
 
@@ -4141,12 +4156,14 @@ class ScatterMatrixXS(MatrixMGXS):
                         scatter_p1 = \
                             scatter_p1.diagonalize_filter(energy_filter)
 
-                        if (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361]  or self._domain.name is not "Borated Water"):
+                        if (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361] or
+                             water_name not in self._domain.name):
+
                             self._rxn_rate_tally = scatter_p0 - scatter_p1
                         else:
                             print("Manual tc on scatter rate tally  -- INVESTIGATE")
                             self._rxn_rate_tally = scatter_p0
-                            self._rxn_rate_tally._mean -= correction_term
+                            self._rxn_rate_tally._mean -= [[[x]] for x in np.diag(correction_term).flatten()]
 
                     # Otherwise, extract scattering moment reaction rate Tally
                     else:
@@ -4258,12 +4275,14 @@ class ScatterMatrixXS(MatrixMGXS):
                     legendre_xs_tally.order = 0
 
                     # And subtract the P1 correction from the P0 matrix
-                    if False and (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361]  or self._domain.name is not "Borated Water"):
+                    if False and (self.energy_groups.num_groups not in [1, 2, 8, 16, 23, 24, 25, 70, 361]  or
+                                  water_name not in self._domain.name):
                         self._xs_tally -= correction
                     else:
                         np.set_printoptions(threshold=np.inf)
                         print("Manual tc on scattering matrices in domain", self._domain.id, self._domain.name)
-
+                        if not consistent:
+                             print("Change consistent flag to True!!", stop)
                         #print(self._xs_tally._mean.shape, np.diag(correction_term).flatten().shape)
                         #print("corr term", np.diag(correction_term).flatten())
                         #print(correction._mean[:, 0, 0])
