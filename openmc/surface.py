@@ -810,9 +810,9 @@ class Cylinder(Surface, metaclass=ABCMeta):
 
     """
     def __init__(self, surface_id=None, boundary_type='transmission',
-                 R=1., name=''):
+                 r=1., name=''):
         super().__init__(surface_id, boundary_type, name=name)
-        self.r = R
+        self.r = r
 
     @property
     def r(self):
@@ -876,8 +876,8 @@ class XCylinder(Cylinder):
     _coeff_keys = ('y0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
-                 y0=0., z0=0., R=1., name=''):
-        super().__init__(surface_id, boundary_type, R, name=name)
+                 y0=0., z0=0., r=1., name=''):
+        super().__init__(surface_id, boundary_type, r, name=name)
         self.y0 = y0
         self.z0 = z0
 
@@ -998,8 +998,8 @@ class YCylinder(Cylinder):
     _coeff_keys = ('x0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
-                 x0=0., z0=0., R=1., name=''):
-        super().__init__(surface_id, boundary_type, R, name=name)
+                 x0=0., z0=0., r=1., name=''):
+        super().__init__(surface_id, boundary_type, r, name=name)
         self.x0 = x0
         self.z0 = z0
 
@@ -1120,8 +1120,8 @@ class ZCylinder(Cylinder):
     _coeff_keys = ('x0', 'y0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
-                 x0=0., y0=0., R=1., name=''):
-        super().__init__(surface_id, boundary_type, R, name=name)
+                 x0=0., y0=0., r=1., name=''):
+        super().__init__(surface_id, boundary_type, r, name=name)
         self.x0 = x0
         self.y0 = y0
 
@@ -1246,12 +1246,12 @@ class Sphere(Surface):
     _coeff_keys = ('x0', 'y0', 'z0', 'r')
 
     def __init__(self, surface_id=None, boundary_type='transmission',
-                 x0=0., y0=0., z0=0., R=1., name=''):
+                 x0=0., y0=0., z0=0., r=1., name=''):
         super().__init__(surface_id, boundary_type, name=name)
         self.x0 = x0
         self.y0 = y0
         self.z0 = z0
-        self.r = R
+        self.r = r
 
     @property
     def x0(self):
@@ -1834,7 +1834,7 @@ class Halfspace(Region):
     can be created from an existing Surface through the __neg__ and __pos__
     operators, as the following example demonstrates:
 
-    >>> sphere = openmc.Sphere(surface_id=1, R=10.0)
+    >>> sphere = openmc.Sphere(surface_id=1, r=10.0)
     >>> inside_sphere = -sphere
     >>> outside_sphere = +sphere
     >>> type(inside_sphere)
