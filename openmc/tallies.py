@@ -361,6 +361,12 @@ class Tally(IDManagerMixin):
         self._nuclides = cv.CheckedList(_NUCLIDE_CLASSES, 'tally nuclides',
                                         nuclides)
 
+    @nuclides.setter
+    def nuclide(self, nuclide):
+        cv.check_type('tally nuclide', nuclide, _NUCLIDE_CLASSES)
+
+        self._nuclides = [nuclide]
+
     @scores.setter
     def scores(self, scores):
         cv.check_type('tally scores', scores, MutableSequence)
