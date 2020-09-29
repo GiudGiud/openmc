@@ -7,6 +7,10 @@
 
 namespace openmc {
 
+enum class LegendreAngle {
+  mu, azimuthal, polar
+};
+
 //==============================================================================
 //! Gives Legendre moments of the change in scattering angle
 //==============================================================================
@@ -37,14 +41,18 @@ public:
   // Accessors
 
   int order() const { return order_; }
-
   void set_order(int order);
+
+  LegendreAngle angle() const { return angle_; }
+  void set_angle(LegendreAngle angle);
 
 private:
   //----------------------------------------------------------------------------
   // Data members
 
   int order_;
+
+  LegendreAngle angle_;
 };
 
 } // namespace openmc

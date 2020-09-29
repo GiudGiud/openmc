@@ -64,12 +64,18 @@ class LegendreFilter(ExpansionFilter):
     ----------
     order : int
         Maximum Legendre polynomial order
+    angle : string
+        Angle to consider for the expansion
     id : int
         Unique identifier for the filter
     num_bins : int
         The number of filter bins
 
     """
+
+    def __init__(self, order, angle='mu', filter_id=None):
+        super().__init__(order, filter_id)
+        self.angle = angle
 
     def __hash__(self):
         string = type(self).__name__ + '\n'
@@ -81,6 +87,15 @@ class LegendreFilter(ExpansionFilter):
         string += '{: <16}=\t{}\n'.format('\tOrder', self.order)
         string += '{: <16}=\t{}\n'.format('\tID', self.id)
         return string
+
+    @property
+    def angle(self):
+        return self._angle
+
+    @angle.setter
+    def angle(self, angle):
+        cv.check_value('angle', angle, ('mu', 'azimuthal', 'polar'))
+        self._angle = angle
 
     @ExpansionFilter.order.setter
     def order(self, order):
@@ -99,6 +114,21 @@ class LegendreFilter(ExpansionFilter):
         out = cls(group['order'][()], filter_id)
 
         return out
+
+    def to_xml_element(self):
+        """Return XML Element representing the filter.
+
+        Returns
+        -------
+        element : xml.etree.ElementTree.Element
+            XML element containing Legendre filter data
+
+        """
+        element = super().to_xml_element()
+        subelement = ET.SubElement(element, 'angle')
+        subelement.text = self.angle
+
+        return element
 
 
 class SpatialLegendreFilter(ExpansionFilter):
