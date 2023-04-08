@@ -298,6 +298,8 @@ Particle::event_revive_from_secondary()
     alive() = false;
   }
 
+  return;
+
   // Check for secondary particles if this particle is dead
   if (!alive()) {
     // If no secondary particles, break out of event loop
