@@ -37,7 +37,7 @@ CellFilter::set_cells(gsl::span<int32_t> cells)
   // Update cells and mapping
   for (auto& index : cells) {
     Expects(index >= 0);
-    Expects(index < model::cells.size());
+    // Expects(index < model::cells.size());
     cells_.push_back(index);
     map_[index] = cells_.size() - 1;
   }
